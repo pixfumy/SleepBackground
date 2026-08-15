@@ -1,6 +1,6 @@
-package me.bluesmoke.mangodfps.mixin;
+package com.redlimerl.sleepbackground.mixin;
 
-import me.bluesmoke.mangodfps.DynamicMenuFPSMod;
+import com.redlimerl.sleepbackground.SleepBackground;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.GameRenderer;
@@ -20,7 +20,6 @@ public class GameRendererMixin {
     @Inject(
             method = {
                     "method_1331",
-                    "method_9775"
             },
             at = @At(
                     value = "HEAD"
@@ -28,15 +27,8 @@ public class GameRendererMixin {
             cancellable = true,
             remap = false
     )
-    private void onRender(CallbackInfo ci) throws NoSuchFieldException, IllegalAccessException {
-
-        // method_2965 -> Minecraft::getMinecraft, MinecraftClient::getInstance
-        // field_3816 -> Minecraft#currentScreen, MinecraftClient#currentScreen
-        Screen currentScreen = (Screen) DynamicMenuFPSMod.minecraftClient.getDeclaredField("field_3816").get(
-                DynamicMenuFPSMod.minecraftClientInstance
-        );
-
-        if (currentScreen instanceof GameMenuScreen && !DynamicMenuFPSMod.checkForRender()) {
+    private void onRender(float par1, CallbackInfo ci) {
+        if (!SleepBackground.shouldRenderCurrentFrame) {
             ci.cancel();
         }
     }

@@ -1,9 +1,10 @@
 {
   "required": true,
-  "package": "me.bluesmoke.mangodfps.mixin",
+  "package": "com.redlimerl.sleepbackground.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
-    "GameRendererMixin"
+    "GameRendererMixin",
+    "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 0

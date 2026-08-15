@@ -1,26 +1,27 @@
 {
   "schemaVersion": 1,
-  "id": "dynamicmenufps",
+  "id": "sleepbackground",
   "version": "${version}",
-  "name": "Dynamic Menu FPS",
+  "name": "SleepBackground",
   "description": "Dynamically adjusts FPS on pause screen so minecraft doesn't hog resources in background.",
   "authors": [
     "MrMangoHands",
     "RedLime",
-    "tildejustin"
+    "tildejustin",
+    "pixfumy"
   ],
   "license": "MIT",
   "environment": "client",
   "entrypoints": {
     "client": [
-      "me.bluesmoke.mangodfps.DynamicMenuFPSMod"
+      "com.redlimerl.sleepbackground.SleepBackground"
     ]
   },
   "mixins": [
-    "mangodfps.mixins.json"
+    "sleepbackground.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.4.0",
-    "minecraft": "<=1.12.2"
+    "minecraft": ">=1.3.1 <=1.6.4"
   }
 }
