@@ -5,20 +5,21 @@ import net.fabricmc.loader.api.MappingResolver;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class VersionSpecificClientHelper {
-    public static Class<?> minecraftClientClass;
-    public static Object minecraftClientInstance;
+    private static Class<?> minecraftClientClass;
+    private static Object minecraftClientInstance;
 
-    public static Field clientWorldField;
+    private static Field clientWorldField;
+
+    public static Class<?> clientLoggerClass;
+    private static Method clientGetLogManagerMethod;
 
     public static void initVersionSpecificClientFields() {
         MappingResolver mappingResolver = FabricLoader.getInstance().getMappingResolver();
 
         try {
-            // 1.6-1.12
-            // class_1600 -> MinecraftClient
-            SleepBackgroundConfig.init();
 
             String minecraftClientClassName = mappingResolver.mapClassName(
                     "intermediary",
@@ -57,9 +58,37 @@ public class VersionSpecificClientHelper {
                     "field_3803",
                     "L" + clientWorldClassName.replace(".", "/") + ";"
             );
-            clientWorldField = minecraftClientClass.getDeclaredField(clientWorldFieldName);
+            clientWorldField = minecraftClientClass.getField(clientWorldFieldName);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
+        }
+
+        String unmappedClientLoggerClassName = "net.minecraft.class_1555";
+        String clientLoggerClassName = mappingResolver.mapClassName(
+                "intermediary",
+                unmappedClientLoggerClassName
+        );
+        try {
+            clientLoggerClass = Class.forName(clientLoggerClassName);
+        } catch (ClassNotFoundException e) {
+            LoggingHelper.info("Could not find MinecraftClient.LogManager, Minecraft Version is "
+                    + SleepBackground.MINECRAFT_VERSION + ". If your game is still running at this point, this is fine.");
+            return;
+        }
+
+        try {
+            String unmappedSnoopableClassName = "net.minecraft.class_855";
+            String getLogManagerMethodName = mappingResolver.mapMethodName(
+                    "intermediary",
+                    unmappedSnoopableClassName,
+                    "method_5352",
+                    "()L" + unmappedClientLoggerClassName.replace(".", "/") + ";"
+            );
+            clientGetLogManagerMethod = minecraftClientClass.getDeclaredMethod(getLogManagerMethodName);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Minecraft jar has class LogManager but the method MinecraftClient$getLogManager" +
+                    " was not found. Namespace is " + FabricLoader.getInstance().getMappingResolver().getCurrentRuntimeNamespace() + ", "
+                    + "Minecraft Version is " + SleepBackground.MINECRAFT_VERSION);
         }
     }
 
@@ -71,5 +100,15 @@ public class VersionSpecificClientHelper {
             throw new RuntimeException("MinecraftClient::world / Minecraft::world field not found", e);
         }
         return clientWorldInstance;
+    }
+
+    public static Object getClientLogManagerInstance() {
+        Object clientLogManager;
+        try {
+            clientLogManager = clientGetLogManagerMethod.invoke(minecraftClientInstance);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException("MinecraftClient::LogManager field not found", e);
+        }
+        return clientLogManager;
     }
 }
