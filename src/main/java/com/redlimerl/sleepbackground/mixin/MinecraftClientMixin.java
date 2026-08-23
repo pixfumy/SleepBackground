@@ -31,12 +31,13 @@ public class MinecraftClientMixin {
                 Math.min(SleepBackground.CLIENT_WORLD_TICK_COUNT + 1, ConfigValues.WORLD_INITIAL_FRAME_RATE.getMaxTicks());
     }
 
-    /* 1.3 - 1.6: This Redirect has 2 targets but only one of them will run per frame depending on whether or not F7 is being held.
-    The behaviour seems identical for both calls. Probably debugging logic added by Mojang that they forgot to remove.
+    /* 1.3 - 1.6: This Redirect has 2 targets in method_2916/runGameLoop but only one of them will run per
+    frame depending on whether or not F7 is being held. The behaviour seems identical for both calls. Probably
+    debugging logic added by Mojang that they forgot to remove.
 
-       1.7+: runGameLoop calls method_6648 calls Display.update(), so we redirect there.
+       1.7+: runGameLoop calls method_6648/updateDisplay which calls Display.update(), so we redirect there.
     */
-    @Redirect(method = {"method_2916", "runGameLoop", "method_6648"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;update()V"), remap = false)
+    @Redirect(method = {"method_2916", "runGameLoop", "method_6648", "updateDisplay"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;update()V"), remap = false)
     private void wrapDisplayUpdate() {
         if (SleepBackground.shouldRenderCurrentFrame) {
             Display.update();
@@ -44,4 +45,5 @@ public class MinecraftClientMixin {
             Display.processMessages();
         }
     }
+
 }

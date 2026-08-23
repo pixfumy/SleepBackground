@@ -11,7 +11,9 @@ public class ConfigValues {
     public static final FrameLimitConfigValue BACKGROUND_FRAME_RATE =
             new FrameLimitConfigValue("background", 1, "It works when instance is in the background after joined the world.");
 
-    // Unlike in 1.14+, Loading screen renders at 10fps so configurable loading screen frame rate is not needed.
+    /* Unlike in 1.14+, Loading screen renders at 10fps so configurable loading screen frame rate is not needed.
+    In situations where WorldPreview exists pre1.14, it handles the loading screen framerate as its own config value.
+     */
 
     public static final FrameTickConfigValue WORLD_INITIAL_FRAME_RATE =
             new FrameTickConfigValue("world_setup", 10, 20, "same with (background) config but for (max_ticks) ticks after the joined the world.");

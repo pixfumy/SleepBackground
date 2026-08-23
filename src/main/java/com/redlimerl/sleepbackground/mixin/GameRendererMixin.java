@@ -20,6 +20,8 @@ public class GameRendererMixin {
     @Inject(
             method = {
                     "method_1331",
+                    "method_9775",
+                    "render"
             },
             at = @At(
                     value = "HEAD"
@@ -27,9 +29,10 @@ public class GameRendererMixin {
             cancellable = true,
             remap = false
     )
-    private void onRender(float par1, CallbackInfo ci) {
+    private void onRender(CallbackInfo ci) {
         if (!SleepBackground.shouldRenderCurrentFrame) {
             ci.cancel();
         }
     }
+
 }

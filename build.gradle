@@ -1,14 +1,14 @@
 plugins {
-    id "fabric-loom" version "1.3-SNAPSHOT"
-    id "legacy-looming" version "1.3-SNAPSHOT"
+    id "fabric-loom" version "1.15-SNAPSHOT"
+    id "legacy-looming" version "1.15-SNAPSHOT"
 }
 
-version = "$mod_version-$minecraft_target"
+version = "$mod_version+$minecraft_target"
 group = maven_group
 
 base {
     //noinspection GrDeprecatedAPIUsage
-    archivesBaseName = archives_base_name
+    archivesName = project.archives_base_name
 }
 
 dependencies {

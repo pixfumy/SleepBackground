@@ -3,8 +3,12 @@
   "package": "com.redlimerl.sleepbackground.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
+    "FramebufferMixin",
     "GameRendererMixin",
-    "MinecraftClientMixin"
+    "RenderSystemMixin",
+    "MinecraftClientMixin",
+    "SnooperMixin",
+    "ToastManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -8,7 +8,8 @@
     "MrMangoHands",
     "RedLime",
     "tildejustin",
-    "pixfumy"
+    "pixfumy",
+    "contariaa"
   ],
   "license": "MIT",
   "environment": "client",
@@ -20,8 +21,11 @@
   "mixins": [
     "sleepbackground.mixins.json"
   ],
+  "breaks": {
+    "dynamicmenufps": "*"
+  },
   "depends": {
     "fabricloader": ">=0.4.0",
-    "minecraft": ">=1.3.1 <=1.7.10"
+    "minecraft": ">=1.3.1 <=1.12.2"
   }
 }
