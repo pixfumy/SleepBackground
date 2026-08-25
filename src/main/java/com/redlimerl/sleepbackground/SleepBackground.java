@@ -3,6 +3,7 @@ package com.redlimerl.sleepbackground;
 import com.redlimerl.sleepbackground.config.ConfigValues;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.gui.screen.GameMenuScreen;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -15,12 +16,15 @@ import java.util.concurrent.locks.LockSupport;
 public class SleepBackground implements ClientModInitializer {
     public static final String MOD_ID = "sleepbackground";
 
-    public static String MINECRAFT_VERSION = FabricLoader.getInstance()
+    public static Integer MINECRAFT_MINOR_VERSION = Integer.parseInt(FabricLoader.getInstance()
             .getModContainer("minecraft")
             .get()
             .getMetadata()
             .getVersion()
-            .getFriendlyString();
+            .getFriendlyString()
+            .split("\\.")
+            [1]
+    );
 
     public static long CLIENT_WORLD_TICK_COUNT = 0;
 

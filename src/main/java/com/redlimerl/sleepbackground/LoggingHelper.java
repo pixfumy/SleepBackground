@@ -11,11 +11,11 @@ public class LoggingHelper {
 
     public static void info(String logMessage) {
         logMessage = "[" + SleepBackground.MOD_ID + "] " + logMessage;
-        String version = SleepBackground.MINECRAFT_VERSION;
+        Integer version = SleepBackground.MINECRAFT_MINOR_VERSION;
 
-        if (version.startsWith("1.3") || version.startsWith("1.4")) { // use java.util.logging.Logger
+        if (version <= 4) { // use java.util.logging.Logger
             JAVA_UTIL_LOGGER.info(logMessage);
-        } else if (version.startsWith("1.5") || version.startsWith("1.6")) { // use net.minecraft.util.logging.LogManager
+        } else if (version <= 6) { // use net.minecraft.util.logging.LogManager
             Object loggerInstance = VersionSpecificClientHelper.getClientLogManagerInstance();
             Class<?> loggerClass = loggerInstance.getClass();
 
@@ -39,11 +39,11 @@ public class LoggingHelper {
 
     public static void warn(String logMessage) {
         logMessage = "[" + SleepBackground.MOD_ID + "] " + logMessage;
-        String version = SleepBackground.MINECRAFT_VERSION;
+        Integer version = SleepBackground.MINECRAFT_MINOR_VERSION;
 
-        if (version.startsWith("1.3") || version.startsWith("1.4")) { // use java.util.logging.Logger
+        if (version <= 4) { // use java.util.logging.Logger
             JAVA_UTIL_LOGGER.warning(logMessage);
-        } else if (version.startsWith("1.5") || version.startsWith("1.6")) { // use net.minecraft.util.logging.LogManager
+        } else if (version <= 6) { // use net.minecraft.util.logging.LogManager
             Object loggerInstance = VersionSpecificClientHelper.getClientLogManagerInstance();
             Class<?> loggerClass = loggerInstance.getClass();
 
@@ -67,11 +67,11 @@ public class LoggingHelper {
 
     public static void error(String logMessage) {
         logMessage = "[" + SleepBackground.MOD_ID + "] " + logMessage;
-        String version = SleepBackground.MINECRAFT_VERSION;
+        Integer version = SleepBackground.MINECRAFT_MINOR_VERSION;
 
-        if (version.startsWith("1.3") || version.startsWith("1.4")) { // use java.util.logging.Logger
+        if (version <= 4) { // use java.util.logging.Logger
             JAVA_UTIL_LOGGER.severe(logMessage);
-        } else if (version.startsWith("1.5") || version.startsWith("1.6")) { // use net.minecraft.util.logging.LogManager
+        } else if (version <= 6) { // use net.minecraft.util.logging.LogManager
             Object loggerInstance = VersionSpecificClientHelper.getClientLogManagerInstance();
             Class<?> loggerClass = loggerInstance.getClass();
 

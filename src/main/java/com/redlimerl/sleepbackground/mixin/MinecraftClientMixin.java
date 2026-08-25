@@ -42,7 +42,18 @@ public class MinecraftClientMixin {
         if (SleepBackground.shouldRenderCurrentFrame) {
             Display.update();
         } else if (SleepBackground.shouldPollMouse()) {
-            Display.processMessages();
+            if (SleepBackground.MINECRAFT_MINOR_VERSION >= 7) {
+                /* 1.7+: Inputs are dropped when we try to processMessages without swapping buffers. Since the rendering
+                is done to the FBO and not directly to the back buffer, this won't result in "flashing" like in 1.3-1.6. */
+                Display.update();
+            } else {
+                 /* 1.3-1.6: Swapping buffers would result in "flashing", since rendering is done directly to the back
+                 buffer, and the game has not updated the back buffer since the last render frame. Therefore
+                 Display.update() must run if and only if GameRenderer.render runs on a given frame.
+
+                 However, the game will recognize inputs as long as processMessages() is called. */
+                Display.processMessages();
+            }
         }
     }
 

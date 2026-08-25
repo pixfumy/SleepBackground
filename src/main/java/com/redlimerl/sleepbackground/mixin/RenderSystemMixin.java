@@ -18,10 +18,9 @@ public class RenderSystemMixin {
             at = @At("HEAD"),
             cancellable = true)
     private static void cancelOperation1_3To1_7(CallbackInfo ci) {
-        String version = SleepBackground.MINECRAFT_VERSION;
+        Integer version = SleepBackground.MINECRAFT_MINOR_VERSION;
 
-        if (version.startsWith("1.3") || version.startsWith("1.4") || version.startsWith("1.5") || version.startsWith("1.6") ||
-             version.startsWith("1.7")) {
+        if (version <= 7) {
             if (!SleepBackground.shouldRenderCurrentFrame) {
                 ci.cancel();
             }
@@ -33,9 +32,8 @@ public class RenderSystemMixin {
             at = @At("HEAD"),
             cancellable = true)
     private static void cancelOperation1_8To1_12(CallbackInfo ci) {
-        String version = SleepBackground.MINECRAFT_VERSION;
-        if (version.startsWith("1.8") || version.startsWith("1.9") || version.startsWith("1.10") || version.startsWith("1.11") ||
-                version.startsWith("1.12")) {
+        Integer version = SleepBackground.MINECRAFT_MINOR_VERSION;
+        if (version >= 8) {
             if (!SleepBackground.shouldRenderCurrentFrame) {
                 ci.cancel();
             }

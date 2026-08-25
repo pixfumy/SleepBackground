@@ -16,6 +16,8 @@ public class VersionSpecificClientHelper {
     public static Class<?> clientLoggerClass;
     private static Method clientGetLogManagerMethod;
 
+    private static Field clientCurrentScreenField;
+
     public static void initVersionSpecificClientFields() {
         MappingResolver mappingResolver = FabricLoader.getInstance().getMappingResolver();
 
@@ -68,11 +70,27 @@ public class VersionSpecificClientHelper {
                 "intermediary",
                 unmappedClientLoggerClassName
         );
+
+        try {
+            String screenClassName = "net.minecraft.class_388";
+
+            String clientCurrentScreenFieldName = mappingResolver.mapFieldName(
+                    "intermediary",
+                    unmappedMinecraftClientName,
+                    "field_3816",
+                    "L" + screenClassName.replace(".", "/") + ";"
+            );
+
+            clientCurrentScreenField = minecraftClientClass.getDeclaredField(clientCurrentScreenFieldName);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+
         try {
             clientLoggerClass = Class.forName(clientLoggerClassName);
         } catch (ClassNotFoundException e) {
-            LoggingHelper.info("Could not find MinecraftClient.LogManager, Minecraft Version is "
-                    + SleepBackground.MINECRAFT_VERSION + ". If your game is still running at this point, this is fine.");
+            LoggingHelper.info("Could not find MinecraftClient.LogManager, Minecraft Version is 1."
+                    + SleepBackground.MINECRAFT_MINOR_VERSION + ".x. If your game is still running at this point, this is fine.");
             return;
         }
 
@@ -88,7 +106,7 @@ public class VersionSpecificClientHelper {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Minecraft jar has class LogManager but the method MinecraftClient$getLogManager" +
                     " was not found. Namespace is " + FabricLoader.getInstance().getMappingResolver().getCurrentRuntimeNamespace() + ", "
-                    + "Minecraft Version is " + SleepBackground.MINECRAFT_VERSION);
+                    + "Minecraft Version is 1." + SleepBackground.MINECRAFT_MINOR_VERSION + ".x");
         }
     }
 
@@ -110,5 +128,15 @@ public class VersionSpecificClientHelper {
             throw new RuntimeException("MinecraftClient::LogManager field not found", e);
         }
         return clientLogManager;
+    }
+
+    public static Object getClientCurrentScreenInstance() {
+        Object currentScreen;
+        try {
+            currentScreen = clientCurrentScreenField.get(minecraftClientInstance);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("MinecraftClient::LogManager field not found", e);
+        }
+        return currentScreen;
     }
 }
