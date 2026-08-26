@@ -26,6 +26,6 @@ public class FrameTickConfigValue extends FrameLimitConfigValue {
     }
 
     public int getMaxTicks() {
-        return this.isEnable() ? this.maxTicks : 0;
+        return this.isEnabled() ? this.maxTicks : 0;
     }
 }

@@ -3,14 +3,12 @@ package com.redlimerl.sleepbackground;
 import com.redlimerl.sleepbackground.config.ConfigValues;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gui.screen.GameMenuScreen;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-import java.lang.reflect.Field;
+import java.io.File;
 import java.util.concurrent.locks.LockSupport;
 
 public class SleepBackground implements ClientModInitializer {
@@ -32,6 +30,10 @@ public class SleepBackground implements ClientModInitializer {
     value. SleepBackground.lastRenderTime is updated when shouldRenderInBackground() returns true, so calling it twice in one frame
     will yield different values.*/
     public static boolean shouldRenderCurrentFrame;
+
+    private static boolean lockExists;
+    private static final File LOCK_FILE = new File(FileUtils.getUserDirectory(), "sleepbg.lock");
+    private static int lockTick;
 
     @Override
     public void onInitializeClient() {
@@ -63,7 +65,13 @@ public class SleepBackground implements ClientModInitializer {
     public static boolean shouldPollMouse() {
         long currentTime = System.currentTimeMillis();
         long timeSinceLastPoll = currentTime - lastPollTime;
-        long pollTime = 1000 / ConfigValues.POLLING_RATE_LIMIT.getPollingRate();
+
+        Integer pollingRate = ConfigValues.POLLING_RATE_LIMIT.getPollingRate();
+        if (pollingRate == null) {
+            return true;
+        }
+
+        long pollTime = 1000 / pollingRate;
         if (timeSinceLastPoll < pollTime) {
             return false;
         }
@@ -82,6 +90,12 @@ public class SleepBackground implements ClientModInitializer {
         if (!Display.isActive() && !Mouse.isInsideWindow()) {
             Object clientWorldInstance = VersionSpecificClientHelper.getClientWorldInstance();
             if (clientWorldInstance != null) {
+                if (SleepBackground.lockExists) {
+                    Integer value = ConfigValues.LOCKED_INSTANCE_FRAME_RATE.getFrameLimit();
+                    if (value != null) {
+                        return value;
+                    }
+                }
 
                 if (ConfigValues.WORLD_INITIAL_FRAME_RATE.getMaxTicks() > CLIENT_WORLD_TICK_COUNT) {
                     Integer value = ConfigValues.WORLD_INITIAL_FRAME_RATE.getFrameLimit();
@@ -94,5 +108,20 @@ public class SleepBackground implements ClientModInitializer {
             return null;
         }
         return null;
+    }
+
+    public static void tick() {
+        Object clientWorldInstance = VersionSpecificClientHelper.getClientWorldInstance();
+        CLIENT_WORLD_TICK_COUNT = clientWorldInstance == null ? 0 :
+                Math.min(CLIENT_WORLD_TICK_COUNT + 1, ConfigValues.WORLD_INITIAL_FRAME_RATE.getMaxTicks());
+
+        if (ConfigValues.LOCKED_INSTANCE_FRAME_RATE.isEnabled()) {
+            if (++lockTick >= ConfigValues.LOCKED_INSTANCE_FRAME_RATE.getTickInterval()) {
+                lockExists = LOCK_FILE.exists();
+                lockTick = 0;
+            }
+        } else {
+            SleepBackground.lockExists = false;
+        }
     }
 }

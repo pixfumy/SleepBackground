@@ -25,10 +25,8 @@ public class MinecraftClientMixin {
     }
 
     @Inject(method = {"method_2954", "tick"}, at = @At("TAIL"), remap = false)
-    private void incrementWorldTickCount(CallbackInfo ci) {
-        Object clientWorldInstance = VersionSpecificClientHelper.getClientWorldInstance();
-        SleepBackground.CLIENT_WORLD_TICK_COUNT = clientWorldInstance == null ? 0 :
-                Math.min(SleepBackground.CLIENT_WORLD_TICK_COUNT + 1, ConfigValues.WORLD_INITIAL_FRAME_RATE.getMaxTicks());
+    private void tickSleepBackground(CallbackInfo ci) {
+        SleepBackground.tick();
     }
 
     /* 1.3 - 1.6: This Redirect has 2 targets in method_2916/runGameLoop but only one of them will run per
@@ -47,11 +45,11 @@ public class MinecraftClientMixin {
                 is done to the FBO and not directly to the back buffer, this won't result in "flashing" like in 1.3-1.6. */
                 Display.update();
             } else {
-                 /* 1.3-1.6: Swapping buffers would result in "flashing", since rendering is done directly to the back
-                 buffer, and the game has not updated the back buffer since the last render frame. Therefore
-                 Display.update() must run if and only if GameRenderer.render runs on a given frame.
+                /* 1.3-1.6: Swapping buffers would result in "flashing", since rendering is done directly to the back
+                buffer, and the game has not updated the back buffer since the last render frame. Therefore
+                Display.update() must run if and only if GameRenderer.render runs on a given frame.
 
-                 However, the game will recognize inputs as long as processMessages() is called. */
+                However, the game will recognize inputs as long as processMessages() is called. */
                 Display.processMessages();
             }
         }

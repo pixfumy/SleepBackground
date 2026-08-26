@@ -1,6 +1,7 @@
 package com.redlimerl.sleepbackground.config;
 
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Nullable;
 
 public class PollingRateConfigValue extends ConfigValue {
 
@@ -24,7 +25,8 @@ public class PollingRateConfigValue extends ConfigValue {
         configObject.addProperty("polling_rate", this.pollingRate);
     }
 
-    public int getPollingRate() {
-        return pollingRate;
+    @Nullable
+    public Integer getPollingRate() {
+        return this.isEnabled() ? pollingRate : null;
     }
 }
