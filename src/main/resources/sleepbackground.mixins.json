@@ -5,8 +5,9 @@
   "client": [
     "FramebufferMixin",
     "GameRendererMixin",
-    "RenderSystemMixin",
+    "LoadingScreenRendererMixin",
     "MinecraftClientMixin",
+    "RenderSystemMixin",
     "SnooperMixin",
     "ToastManagerMixin"
   ],

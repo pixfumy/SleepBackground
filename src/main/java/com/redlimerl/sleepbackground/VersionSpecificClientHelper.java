@@ -65,12 +65,6 @@ public class VersionSpecificClientHelper {
             throw new RuntimeException(e);
         }
 
-        String unmappedClientLoggerClassName = "net.minecraft.class_1555";
-        String clientLoggerClassName = mappingResolver.mapClassName(
-                "intermediary",
-                unmappedClientLoggerClassName
-        );
-
         try {
             String screenClassName = "net.minecraft.class_388";
 
@@ -86,6 +80,12 @@ public class VersionSpecificClientHelper {
             throw new RuntimeException(e);
         }
 
+        String unmappedClientLoggerClassName = "net.minecraft.class_1555";
+        String clientLoggerClassName = mappingResolver.mapClassName(
+                "intermediary",
+                unmappedClientLoggerClassName
+        );
+
         try {
             clientLoggerClass = Class.forName(clientLoggerClassName);
         } catch (ClassNotFoundException e) {
@@ -95,6 +95,7 @@ public class VersionSpecificClientHelper {
         }
 
         try {
+            // (1.5 & 1.6) MinecraftClient implements Snoopable that has the method getLogManager
             String unmappedSnoopableClassName = "net.minecraft.class_855";
             String getLogManagerMethodName = mappingResolver.mapMethodName(
                     "intermediary",
@@ -135,7 +136,7 @@ public class VersionSpecificClientHelper {
         try {
             currentScreen = clientCurrentScreenField.get(minecraftClientInstance);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("MinecraftClient::LogManager field not found", e);
+            throw new RuntimeException("Error accessing MinecraftClient::currentScreen", e);
         }
         return currentScreen;
     }

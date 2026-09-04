@@ -1,8 +1,6 @@
 package com.redlimerl.sleepbackground.mixin;
 
-import com.redlimerl.sleepbackground.VersionSpecificClientHelper;
 import com.redlimerl.sleepbackground.SleepBackground;
-import com.redlimerl.sleepbackground.config.ConfigValues;
 import org.lwjgl.opengl.Display;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
         },
         remap = false)
 public class MinecraftClientMixin {
-
     @Inject(method = {"method_2916", "runGameLoop"}, at = @At("HEAD"), remap = false)
     public void onRender(CallbackInfo ci) {
         SleepBackground.shouldRenderCurrentFrame = SleepBackground.shouldRenderInBackground();
@@ -30,8 +27,8 @@ public class MinecraftClientMixin {
     }
 
     /* 1.3 - 1.6: This Redirect has 2 targets in method_2916/runGameLoop but only one of them will run per
-    frame depending on whether or not F7 is being held. The behaviour seems identical for both calls. Probably
-    debugging logic added by Mojang that they forgot to remove.
+       frame depending on whether or not F7 is being held. The behaviour seems identical for both calls. Probably
+       debugging logic added by Mojang that they forgot to remove.
 
        1.7+: runGameLoop calls method_6648/updateDisplay which calls Display.update(), so we redirect there.
     */
@@ -40,18 +37,7 @@ public class MinecraftClientMixin {
         if (SleepBackground.shouldRenderCurrentFrame) {
             Display.update();
         } else if (SleepBackground.shouldPollMouse()) {
-            if (SleepBackground.MINECRAFT_MINOR_VERSION >= 7) {
-                /* 1.7+: Inputs are dropped when we try to processMessages without swapping buffers. Since the rendering
-                is done to the FBO and not directly to the back buffer, this won't result in "flashing" like in 1.3-1.6. */
-                Display.update();
-            } else {
-                /* 1.3-1.6: Swapping buffers would result in "flashing", since rendering is done directly to the back
-                buffer, and the game has not updated the back buffer since the last render frame. Therefore
-                Display.update() must run if and only if GameRenderer.render runs on a given frame.
-
-                However, the game will recognize inputs as long as processMessages() is called. */
-                Display.processMessages();
-            }
+            Display.processMessages();
         }
     }
 
