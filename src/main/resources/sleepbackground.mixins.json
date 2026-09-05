@@ -1,16 +1,17 @@
 {
   "required": true,
-  "minVersion": "0.8",
   "package": "com.redlimerl.sleepbackground.mixin",
   "compatibilityLevel": "JAVA_8",
-  "injectors": {
-    "defaultRequire": 1
-  },
   "client": [
-    "MixinFramebuffer",
-    "MixinGameRenderer",
-    "MixinMinecraftClient",
-    "MixinRenderSystem",
-    "MixinSnooper"
-  ]
+    "FramebufferMixin",
+    "GameRendererMixin",
+    "LoadingScreenRendererMixin",
+    "MinecraftClientMixin",
+    "RenderSystemMixin",
+    "SnooperMixin",
+    "ToastManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
 }

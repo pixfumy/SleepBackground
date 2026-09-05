@@ -1,20 +1,32 @@
 package com.redlimerl.sleepbackground.config;
 
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Nullable;
 
 public class PollingRateConfigValue extends ConfigValue {
 
-    public PollingRateConfigValue(String keyName, String comment) {
+    private int pollingRate;
+
+    public PollingRateConfigValue(String keyName, int pollingRate, String comment) {
         super(keyName, comment, false);
+        this.pollingRate = pollingRate;
     }
 
     @Override
-    protected void loadToInit(JsonObject configObject) {
-
+    public void loadToInit(JsonObject configObject) {
+        if (configObject.has("polling_rate")) {
+            this.pollingRate = configObject.get("polling_rate").getAsInt();
+            if (this.pollingRate < 1) throw new IllegalArgumentException("The Polling Rate should always be 1 or over");
+        }
     }
 
     @Override
-    protected void writeToJson(JsonObject configObject) {
+    public void writeToJson(JsonObject configObject) {
+        configObject.addProperty("polling_rate", this.pollingRate);
+    }
 
+    @Nullable
+    public Integer getPollingRate() {
+        return this.isEnabled() ? pollingRate : null;
     }
 }

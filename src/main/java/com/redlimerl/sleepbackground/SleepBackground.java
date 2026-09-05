@@ -1,14 +1,9 @@
 package com.redlimerl.sleepbackground;
 
 import com.redlimerl.sleepbackground.config.ConfigValues;
-import me.voidxwalker.worldpreview.WorldPreview;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ProgressScreen;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -17,24 +12,34 @@ import java.io.File;
 import java.util.concurrent.locks.LockSupport;
 
 public class SleepBackground implements ClientModInitializer {
+    public static final String MOD_ID = "sleepbackground";
 
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static Integer MINECRAFT_MINOR_VERSION = Integer.parseInt(FabricLoader.getInstance()
+            .getModContainer("minecraft")
+            .get()
+            .getMetadata()
+            .getVersion()
+            .getFriendlyString()
+            .split("\\.")
+            [1]
+    );
 
-    public static int CLIENT_WORLD_TICK_COUNT = 0;
-    private static boolean HAS_WORLD_PREVIEW = false;
-    private static boolean CHECK_FREEZE_PREVIEW = false;
-    private static boolean LOCK_FREEZE_PREVIEW = false;
-    public static boolean LATEST_LOCK_FRAME = false;
-    public static boolean LOCK_FILE_EXIST = false;
-    private static int LOADING_SCREEN_RENDER_COUNT = 0;
+    public static long CLIENT_WORLD_TICK_COUNT = 0;
+
+    /* save this one in a field because we limit both Display$update and GameRenderer$method_1331 (render) based on this
+    value. SleepBackground.lastRenderTime is updated when shouldRenderInBackground() returns true, so calling it twice in one frame
+    will yield different values.*/
+    public static boolean shouldRenderCurrentFrame;
+
+    private static boolean lockExists;
+    private static final File LOCK_FILE = new File(FileUtils.getUserDirectory(), "sleepbg.lock");
+    private static int lockTick;
 
     @Override
     public void onInitializeClient() {
-        SleepBackgroundConfig.init();
+        VersionSpecificClientHelper.initVersionSpecificClientFields();
 
-        if (FabricLoader.getInstance().getModContainer("worldpreview").isPresent()) {
-            HAS_WORLD_PREVIEW = true;
-        }
+        SleepBackgroundConfig.init();
     }
 
     private static long lastRenderTime = 0;
@@ -56,10 +61,24 @@ public class SleepBackground implements ClientModInitializer {
         return true;
     }
 
-    /**
-     * For decrease CPU usage
-     * From mangohand's idle method
-     */
+    private static long lastPollTime;
+    public static boolean shouldPollMouse() {
+        long currentTime = System.currentTimeMillis();
+        long timeSinceLastPoll = currentTime - lastPollTime;
+
+        Integer pollingRate = ConfigValues.POLLING_RATE_LIMIT.getPollingRate();
+        if (pollingRate == null) {
+            return true;
+        }
+
+        long pollTime = 1000 / pollingRate;
+        if (timeSinceLastPoll < pollTime) {
+            return false;
+        }
+        lastPollTime = currentTime;
+        return true;
+    }
+
     private static void idle(long waitMillis) {
         waitMillis = Math.min(waitMillis, 30L);
         LockSupport.parkNanos("waiting to render", waitMillis * 1000000L);
@@ -67,14 +86,15 @@ public class SleepBackground implements ClientModInitializer {
 
     @Nullable
     private static Integer getBackgroundFPS() {
-        MinecraftClient client = MinecraftClient.getInstance();
 
-        if (!Display.isActive() && !isHoveredWindow()) {
-
-            if (client.world != null) {
-                if (SleepBackground.LOCK_FILE_EXIST) {
-                    Integer value = ConfigValues.NONE_PLAYING_FRAME_RATE.getFrameLimit();
-                    if (value != null) return value;
+        if (!Display.isActive() && !Mouse.isInsideWindow()) {
+            Object clientWorldInstance = VersionSpecificClientHelper.getClientWorldInstance();
+            if (clientWorldInstance != null) {
+                if (SleepBackground.lockExists) {
+                    Integer value = ConfigValues.LOCKED_INSTANCE_FRAME_RATE.getFrameLimit();
+                    if (value != null) {
+                        return value;
+                    }
                 }
 
                 if (ConfigValues.WORLD_INITIAL_FRAME_RATE.getMaxTicks() > CLIENT_WORLD_TICK_COUNT) {
@@ -85,51 +105,23 @@ public class SleepBackground implements ClientModInitializer {
                 return ConfigValues.BACKGROUND_FRAME_RATE.getFrameLimit();
             }
 
-            else if (client.currentScreen instanceof ProgressScreen) {
-                return ConfigValues.LOADING_SCREEN_FRAME_RATE.getFrameLimit();
-            }
-
             return null;
         }
         return null;
     }
 
-    private static boolean isHoveredWindow() {
-        return Mouse.isInsideWindow();
-    }
+    public static void tick() {
+        Object clientWorldInstance = VersionSpecificClientHelper.getClientWorldInstance();
+        CLIENT_WORLD_TICK_COUNT = clientWorldInstance == null ? 0 :
+                Math.min(CLIENT_WORLD_TICK_COUNT + 1, ConfigValues.WORLD_INITIAL_FRAME_RATE.getMaxTicks());
 
-    private static long checkTickRate = 0;
-    public static void checkRenderWorldPreview() {
-        if (!HAS_WORLD_PREVIEW || !WorldPreview.inPreview) return;
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime > checkTickRate + 50) {
-            checkTickRate = currentTime;
-            checkLock();
-        }
-        boolean windowFocused = Display.isActive(), windowHovered = isHoveredWindow();
-        int renderTimes = SleepBackground.LOCK_FILE_EXIST ? ConfigValues.NONE_PLAYING_FRAME_RATE.getRenderTimes() : ConfigValues.WORLD_PREVIEW_RENDER_TIMES.getRenderTimes();
-        if (windowFocused || windowHovered
-                || ++LOADING_SCREEN_RENDER_COUNT >= renderTimes) {
-            LOADING_SCREEN_RENDER_COUNT = 0;
-            if (windowFocused || windowHovered) {
-                if (CHECK_FREEZE_PREVIEW) {
-                    LOCK_FREEZE_PREVIEW = WorldPreview.freezePreview;
-                }
-                CHECK_FREEZE_PREVIEW = true;
+        if (ConfigValues.LOCKED_INSTANCE_FRAME_RATE.isEnabled()) {
+            if (++lockTick >= ConfigValues.LOCKED_INSTANCE_FRAME_RATE.getTickInterval()) {
+                lockExists = LOCK_FILE.exists();
+                lockTick = 0;
             }
-            WorldPreview.freezePreview = LOCK_FREEZE_PREVIEW;
         } else {
-            CHECK_FREEZE_PREVIEW = false;
-            WorldPreview.freezePreview = true;
-        }
-    }
-
-    private static int lockTick = 0;
-    public static void checkLock() {
-        if (ConfigValues.NONE_PLAYING_FRAME_RATE.isEnable() && ++lockTick >= ConfigValues.NONE_PLAYING_FRAME_RATE.getTickInterval()) {
-            SleepBackground.LOCK_FILE_EXIST = new File(FileUtils.getUserDirectory(), "sleepbg.lock").exists();
-            lockTick = 0;
+            SleepBackground.lockExists = false;
         }
     }
 }

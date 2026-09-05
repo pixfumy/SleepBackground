@@ -27,7 +27,7 @@ public abstract class ConfigValue {
         return comment;
     }
 
-    public final boolean isEnable() {
+    public final boolean isEnabled() {
         return enable;
     }
 

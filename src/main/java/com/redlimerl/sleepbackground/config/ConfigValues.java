@@ -1,7 +1,6 @@
 package com.redlimerl.sleepbackground.config;
 
 import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
 
 import java.util.HashSet;
 
@@ -10,37 +9,25 @@ public class ConfigValues {
     public static final HashSet<ConfigValue> ALL_CONFIGS = Sets.newHashSet();
 
     public static final FrameLimitConfigValue BACKGROUND_FRAME_RATE =
-            new FrameLimitConfigValue("background", 1, "It works when instance is in the background after joined the world.");
+            new FrameLimitConfigValue("background", 1, "Default background fps when tabbed out and not hovering over an instance.");
 
-    public static final FrameLockConfigValue NONE_PLAYING_FRAME_RATE =
-            new FrameLockConfigValue("lock_instance", 1, 20, true, 10, "It works when instance is in the background with sleepbg.lock file is exist in user directory at every interval ticks. (for macros option)");
+    /* Unlike in 1.14+, Loading screen renders at 5fps so configurable loading screen frame rate is not needed.
+    In situations where WorldPreview exists pre1.14, it handles the loading screen framerate as its own config value.
+     */
 
-    public static final FrameLimitConfigValue LOADING_SCREEN_FRAME_RATE =
-            new FrameLimitConfigValue("loading_screen", 30, "It works when instance is in the world loading screen. minimum (fps_limit) is 15.") {
-                @Override
-                public void loadToInit(JsonObject configObject) {
-                    super.loadToInit(configObject);
-                    Integer fps = this.getFrameLimit();
-                    if (fps != null && fps < 15) {
-                        throw new IllegalArgumentException("loading_screen fps limit is must be 15 or over");
-                    }
-                }
-            };
-
-    public static final RenderTimesConfigValue WORLD_PREVIEW_RENDER_TIMES =
-            new RenderTimesConfigValue("world_preview", 5, "config for world preview, every time (loading_screen) is rendered (render_times) times, will be render a preview. ex) if (loading_screen.fps_limit) is 30 and this value is 2, preview fps will be 15 (as 30 / 2).");
+    public static final FrameLockConfigValue LOCKED_INSTANCE_FRAME_RATE =
+            new FrameLockConfigValue("lock_instance", 1, 20,
+                    "Frame rate for background instances if using macros that create a sleepbg.lock file.");
 
     public static final FrameTickConfigValue WORLD_INITIAL_FRAME_RATE =
-            new FrameTickConfigValue("world_setup", 10, 30, "same with (background) config but for (max_ticks) ticks after the joined the world.");
+            new FrameTickConfigValue("world_setup", 10, 20, "same with (background) config but for (max_ticks) ticks after joining the world.");
 
-    public static final PollingRateConfigValue POLLING_RATE_LIMIT = new PollingRateConfigValue("polling_rate_limit", "Limits input detection when the instance is in the background. When enabled, it will be make problem if you are using macros.");
+    public static final PollingRateConfigValue POLLING_RATE_LIMIT = new PollingRateConfigValue("polling_rate_limit", 15, "display rate for updating the window and polling input devices when in background.");
 
     static {
         ALL_CONFIGS.add(BACKGROUND_FRAME_RATE);
-        ALL_CONFIGS.add(LOADING_SCREEN_FRAME_RATE);
-        ALL_CONFIGS.add(WORLD_PREVIEW_RENDER_TIMES);
+        ALL_CONFIGS.add(LOCKED_INSTANCE_FRAME_RATE);
         ALL_CONFIGS.add(WORLD_INITIAL_FRAME_RATE);
-        ALL_CONFIGS.add(NONE_PLAYING_FRAME_RATE);
         ALL_CONFIGS.add(POLLING_RATE_LIMIT);
     }
 }
