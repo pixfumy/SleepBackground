@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("ClassNotFoundException")
+@Pseudo
 @Mixin(targets = {
             "net.minecraft.class_1600",
             "net.minecraft.client.MinecraftClient",
@@ -16,12 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
         },
         remap = false)
 public class MinecraftClientMixin {
-    @Inject(method = {"method_2916", "runGameLoop"}, at = @At("HEAD"), remap = false)
+    @Inject(method = {"runGameLoop"}, at = @At("HEAD"))
     public void onRender(CallbackInfo ci) {
         SleepBackground.shouldRenderCurrentFrame = SleepBackground.shouldRenderInBackground();
     }
 
-    @Inject(method = {"method_2954", "tick"}, at = @At("TAIL"), remap = false)
+    @Inject(method = {"tick"}, at = @At("TAIL"))
     private void tickSleepBackground(CallbackInfo ci) {
         SleepBackground.tick();
     }
@@ -30,9 +31,10 @@ public class MinecraftClientMixin {
        frame depending on whether or not F7 is being held. The behaviour seems identical for both calls. Probably
        debugging logic added by Mojang that they forgot to remove.
 
-       1.7+: runGameLoop calls method_6648/updateDisplay which calls Display.update(), so we redirect there.
+       1.7: runGameLoop calls method_6648 which calls Display.update(), so we redirect there.
+       1.8 - 1.12:  runGameLoop calls method_9403/updateDisplay which calls Display.update(), so we redirect there.
     */
-    @Redirect(method = {"method_2916", "runGameLoop", "method_6648", "updateDisplay"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;update()V"), remap = false)
+    @Redirect(method = {"runGameLoop", "method_6648", "method_9403", "updateDisplay"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;update()V"), remap = false)
     private void wrapDisplayUpdate() {
         if (SleepBackground.shouldRenderCurrentFrame) {
             Display.update();

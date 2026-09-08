@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.redlimerl.sleepbackground.config.ConfigValue;
 import com.redlimerl.sleepbackground.config.ConfigValues;
+import com.redlimerl.sleepbackground.logging.LoggingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.commons.io.FileUtils;
 

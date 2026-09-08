@@ -8,14 +8,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 1.7 - 1.12: Frame buffer is used for rendering
+ * 1.3 - 1.7: GL11 is called directly from MC code
  */
 @Pseudo
-@Mixin(targets = {"net.minecraft.class_1862", "net.minecraft.client.gl.Framebuffer"}, remap = false)
-public class FramebufferMixin {
+@Mixin(targets = "org.lwjgl.opengl.GL11", remap = false)
+public class GL11Mixin {
 
-    @Inject(method = {"bind", "unbind", "draw"}, at = @At("HEAD"), cancellable = true, require = 3)
-    private void onBegin(CallbackInfo ci) {
+    @Inject(method = {"glClear", "glEnable", "glFlush"},
+            remap = false,
+            at = @At("HEAD"),
+            cancellable = true,
+            require = 3)
+    private static void cancelOperation(CallbackInfo ci) {
         if (!SleepBackground.shouldRenderCurrentFrame) {
             ci.cancel();
         }

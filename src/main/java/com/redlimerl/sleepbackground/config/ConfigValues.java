@@ -1,12 +1,10 @@
 package com.redlimerl.sleepbackground.config;
 
-import com.google.common.collect.Sets;
-
 import java.util.HashSet;
 
 public class ConfigValues {
 
-    public static final HashSet<ConfigValue> ALL_CONFIGS = Sets.newHashSet();
+    public static final HashSet<ConfigValue> ALL_CONFIGS = new HashSet<>();
 
     public static final FrameLimitConfigValue BACKGROUND_FRAME_RATE =
             new FrameLimitConfigValue("background", 1, "Default background fps when tabbed out and not hovering over an instance.");

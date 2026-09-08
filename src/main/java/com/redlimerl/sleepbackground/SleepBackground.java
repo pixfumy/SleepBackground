@@ -37,7 +37,7 @@ public class SleepBackground implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        VersionSpecificClientHelper.initVersionSpecificClientFields();
+        VersionSpecificClientHelper.init();
 
         SleepBackgroundConfig.init();
     }

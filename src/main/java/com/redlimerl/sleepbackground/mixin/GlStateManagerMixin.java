@@ -8,14 +8,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 1.7 - 1.12: Frame buffer is used for rendering
+ * 1.8 - 1.12: blaze3d.platform.GlStateManager is used as a GL11 wrapper
  */
 @Pseudo
-@Mixin(targets = {"net.minecraft.class_1862", "net.minecraft.client.gl.Framebuffer"}, remap = false)
-public class FramebufferMixin {
+@Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager", remap = false)
+public class GlStateManagerMixin {
 
-    @Inject(method = {"bind", "unbind", "draw"}, at = @At("HEAD"), cancellable = true, require = 3)
-    private void onBegin(CallbackInfo ci) {
+    @Inject(method = {"clear", "enableCull", "enableTexture"},
+            remap = false,
+            at = @At("HEAD"),
+            cancellable = true,
+            require = 3)
+    private static void cancelOperation(CallbackInfo ci) {
         if (!SleepBackground.shouldRenderCurrentFrame) {
             ci.cancel();
         }
